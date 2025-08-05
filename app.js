@@ -48,6 +48,7 @@ function render() {
   container.innerHTML = "";
 
   if (mode === "flashcard") {
+    document.getElementById("flashcard-nav").style.display = "block";
     const item = filtered[currentIndex % filtered.length];
     const card = document.createElement("div");
     card.className = "card";
@@ -62,6 +63,7 @@ function render() {
     card.innerHTML = content;
     container.appendChild(card);
   } else {
+    document.getElementById("flashcard-nav").style.display = "none";
     filtered.forEach(item => {
       const card = document.createElement("div");
       card.className = "card";
@@ -74,6 +76,20 @@ function render() {
       container.appendChild(card);
     });
   }
+}
+
+function nextCard() {
+  const filtered = getFilteredData();
+  currentIndex = (currentIndex + 1) % filtered.length;
+  showingStep = 0;
+  render();
+}
+
+function prevCard() {
+  const filtered = getFilteredData();
+  currentIndex = (currentIndex - 1 + filtered.length) % filtered.length;
+  showingStep = 0;
+  render();
 }
 
 function downloadPDF() {
