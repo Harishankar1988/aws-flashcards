@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search Results - AWS Flashcards</title>
+  <link rel="stylesheet" href="style.css?v=5">
+</head>
+<body>
+  <div class="container">
+    <h1>Search Results</h1>
+    <p id="searchSummary"></p>
+    <div id="results"></div>
+  </div>
+
+  <script>
+    function getQueryParams() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return {
+        query: urlParams.get('query')?.toLowerCase() || '',
+        mode: urlParams.get('mode') || 'keyword'
+      };
+    }
+
+    function loadCSVAndSearch() {
+      fetch('data.csv')
+        .then(res => res.text())
+        .then(csv => {
+          const { query, mode } = getQueryParams();
+          document.getElementById('searchSummary').innerText = `Searching for "${query}" in ${mode === 'keyword' ? 'keywords' : 'all fields'}...`;
+
+          const rows = csv.split("\n").slice(1).filter(Boolean);
+          const data = rows.map(row => {
+            const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, ''));
+            return {
+              aws_service_name: cols[0],
+              key_word: cols[1],
+              what_it_is: cols[2],
+              use_case: cols[3],
+              note_1: cols[4]
+            };
+          });
+
+          const results = mode === 'keyword'
+            ? data.filter(d => d.key_word.toLowerCase().includes(query))
+            : data.filter(d =>
+                Object.values(d).some(value =>
+                  value.toLowerCase().includes(query)
+                )
+              );
+
+          const container = document.getElementById('results');
+          container.innerHTML = '';
+
+          if (results.length === 0) {
+            container.innerHTML = '<p>No matches found.</p>';
+            return;
+          }
+
+          results.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+              <strong>Service:</strong> ${item.aws_service_name}<br>
+              <strong>Keyword:</strong> ${item.key_word}<br>
+              <strong>What it is:</strong> ${item.what_it_is}<br>
+              <strong>Note:</strong> ${item.note_1}<br>
+              <strong>Use Case:</strong> ${item.use_case}
+            `;
+            container.appendChild(card);
+          });
+        });
+    }
+
+    loadCSVAndSearch();
+  </script>
+</body>
+</html>

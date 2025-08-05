@@ -4,12 +4,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AWS Flashcard & Cheatsheet App</title>
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
   <div class="container">
     <h1>AWS Flashcards & Cheatsheet</h1>
+
     <select id="serviceFilter"></select>
+
+    <!-- Properly positioned search form -->
+    <form id="searchForm" onsubmit="return handleSearchSubmit()" class="search-controls">
+      <input type="text" id="searchInput" placeholder="Search..." required />
+      <label><input type="radio" name="searchMode" value="keyword" checked /> Keyword Only</label>
+      <label><input type="radio" name="searchMode" value="all" /> All Fields</label>
+      <button type="submit">Search</button>
+    </form>
+
     <div class="mode-buttons">
       <button onclick="setMode('flashcard')">Flashcard Mode</button>
       <button onclick="setMode('cheatsheet')">Cheatsheet Mode</button>
@@ -18,13 +28,24 @@
 
     <div id="app"></div>
 
-    <!-- Moved flashcard navigation buttons below the flashcard display -->
     <div class="mode-buttons" id="flashcard-nav" style="display: none;">
       <button onclick="prevCard()">Previous</button>
       <button onclick="nextCard()">Next</button>
     </div>
   </div>
+
+  <script>
+    function handleSearchSubmit() {
+      const query = encodeURIComponent(document.getElementById('searchInput').value.trim());
+      const mode = document.querySelector('input[name="searchMode"]:checked').value;
+      if (query) {
+        window.location.href = `search.html?query=${query}&mode=${mode}`;
+      }
+      return false;
+    }
+  </script>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="app.js"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>

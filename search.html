@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search Results - AWS Flashcards</title>
+  <link rel="stylesheet" href="style.css?v=6">
+  <style>
+    .pagination-buttons {
+      margin-top: 20px;
+    }
+    .pagination-buttons button {
+      margin: 0 10px;
+      padding: 8px 14px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    mark {
+      background-color: yellow;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Search Results</h1>
+    <p id="searchSummary"></p>
+    <button onclick="downloadResultsPDF()">Download Results as PDF</button>
+    <div id="results"></div>
+    <div class="pagination-buttons" id="pagination" style="display:none;">
+      <button onclick="prevPage()">Previous</button>
+      <span id="pageInfo"></span>
+      <button onclick="nextPage()">Next</button>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    let resultsData = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    let query = "";
+    let mode = "";
+
+    function getQueryParams() {
+      const urlParams = new URLSearchParams(window.location.search);
+      query = urlParams.get('query')?.toLowerCase() || '';
+      mode = urlParams.get('mode') || 'keyword';
+    }
+
+    function highlightMatch(text, query) {
+      const regex = new RegExp('('+query+')', 'ig');
+      return text.replace(regex, '<mark>$1</mark>');
+    }
+
+    function loadCSVAndSearch() {
+      fetch('data.csv')
+        .then(res => res.text())
+        .then(csv => {
+          getQueryParams();
+          document.getElementById('searchSummary').innerText =
+            `Searching for "${query}" in ${mode === 'keyword' ? 'keywords' : 'all fields'}...`;
+
+          const rows = csv.split("\n").slice(1).filter(Boolean);
+          const data = rows.map(row => {
+            const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, ''));
+            return {
+              aws_service_name: cols[0],
+              key_word: cols[1],
+              what_it_is: cols[2],
+              use_case: cols[3],
+              note_1: cols[4]
+            };
+          });
+
+          resultsData = mode === 'keyword'
+            ? data.filter(d => d.key_word.toLowerCase().includes(query))
+            : data.filter(d =>
+                Object.values(d).some(value =>
+                  value.toLowerCase().includes(query)
+                )
+              );
+
+          currentPage = 1;
+          renderPage();
+        });
+    }
+
+    function renderPage() {
+      const container = document.getElementById('results');
+      container.innerHTML = '';
+
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      const pageData = resultsData.slice(start, end);
+
+      if (resultsData.length > itemsPerPage) {
+        document.getElementById('pagination').style.display = 'block';
+        document.getElementById('pageInfo').innerText = `Page ${currentPage} of ${Math.ceil(resultsData.length / itemsPerPage)}`;
+      } else {
+        document.getElementById('pagination').style.display = 'none';
+      }
+
+      if (pageData.length === 0) {
+        container.innerHTML = '<p>No matches found.</p>';
+        return;
+      }
+
+      pageData.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <strong>Service:</strong> ${highlightMatch(item.aws_service_name, query)}<br>
+          <strong>Keyword:</strong> ${highlightMatch(item.key_word, query)}<br>
+          <strong>What it is:</strong> ${highlightMatch(item.what_it_is, query)}<br>
+          <strong>Note:</strong> ${highlightMatch(item.note_1, query)}<br>
+          <strong>Use Case:</strong> ${highlightMatch(item.use_case, query)}
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function prevPage() {
+      if (currentPage > 1) {
+        currentPage--;
+        renderPage();
+      }
+    }
+
+    function nextPage() {
+      if (currentPage < Math.ceil(resultsData.length / itemsPerPage)) {
+        currentPage++;
+        renderPage();
+      }
+    }
+
+    function downloadResultsPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      let y = 10;
+      resultsData.forEach(item => {
+        const lines = [
+          `Service: ${item.aws_service_name}`,
+          `Keyword: ${item.key_word}`,
+          `What it is: ${item.what_it_is}`,
+          `Note: ${item.note_1}`,
+          `Use Case: ${item.use_case}`
+        ];
+        lines.forEach(line => {
+          doc.text(line, 10, y);
+          y += 7;
+        });
+        y += 5;
+        if (y > 270) {
+          doc.addPage();
+          y = 10;
+        }
+      });
+      doc.save("search_results.pdf");
+    }
+
+    loadCSVAndSearch();
+  </script>
+</body>
+</html>

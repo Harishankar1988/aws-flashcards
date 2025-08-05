@@ -2,3 +2,4 @@ aws_service_name,key_word,what_it_is,use_case,note_1
 AWS Glue,Glue Crawler,Scans data sources and builds schema for Glue Data Catalog.,Used to automatically update metadata when new files are added to S3.,"Supports multiple classifiers like CSV, JSON, Grok, etc."
 AWS Glue,Glue Job,"Serverless ETL job that runs PySpark, Scala, or Python scripts.",Used to transform and process data in batch or streaming mode.,Can be scheduled or triggered by events.
 Amazon Redshift,Redshift Spectrum,Query service that allows Redshift to access data in S3 without loading it.,Used for extending Redshift queries to data lake.,Works well with Glue Catalog as external schema.
+a,a_ser,a_w,a_u_case,a_note
