@@ -43,6 +43,12 @@ button:hover {
   margin: 10px auto;
   max-width: 500px;
   text-align: left;
+  min-height: 250px;
+  max-height: 400px;
+  overflow-y: auto;
+  word-wrap: break-word;     /* legacy support */
+  overflow-wrap: break-word; /* modern standard */
+  white-space: normal;
 }
 
 select#serviceFilter {
