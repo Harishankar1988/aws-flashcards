@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Search Results - AWS Flashcards</title>
-  <link rel="stylesheet" href="style.css?v=6">
+  <title>Search - AWS Flashcards</title>
+  <link rel="stylesheet" href="style.css?v=8">
   <style>
     .pagination-buttons {
       margin-top: 20px;
@@ -25,9 +25,18 @@
 </head>
 <body>
   <div class="container">
-    <h1>Search Results</h1>
+    <h1>Search AWS Flashcards</h1>
+
+    <!-- Search form -->
+    <form id="searchForm" onsubmit="return handleSearchSubmit()" class="search-controls">
+      <input type="text" id="searchInput" placeholder="Enter search term..." required />
+      <label><input type="radio" name="searchMode" value="keyword" checked /> Keyword Only</label>
+      <label><input type="radio" name="searchMode" value="all" /> All Fields</label>
+      <button type="submit">Search</button>
+    </form>
+
     <p id="searchSummary"></p>
-    <button onclick="downloadResultsPDF()">Download Results as PDF</button>
+    <button onclick="downloadResultsPDF()" id="downloadBtn" style="display:none;">Download Results as PDF</button>
     <div id="results"></div>
     <div class="pagination-buttons" id="pagination" style="display:none;">
       <button onclick="prevPage()">Previous</button>
@@ -38,33 +47,24 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
+    let allData = [];
     let resultsData = [];
     let currentPage = 1;
     const itemsPerPage = 10;
-    let query = "";
-    let mode = "";
-
-    function getQueryParams() {
-      const urlParams = new URLSearchParams(window.location.search);
-      query = urlParams.get('query')?.toLowerCase() || '';
-      mode = urlParams.get('mode') || 'keyword';
-    }
+    let searchQuery = "";
+    let searchMode = "keyword";
 
     function highlightMatch(text, query) {
       const regex = new RegExp('('+query+')', 'ig');
       return text.replace(regex, '<mark>$1</mark>');
     }
 
-    function loadCSVAndSearch() {
+    function loadCSV() {
       fetch('data.csv')
         .then(res => res.text())
         .then(csv => {
-          getQueryParams();
-          document.getElementById('searchSummary').innerText =
-            `Searching for "${query}" in ${mode === 'keyword' ? 'keywords' : 'all fields'}...`;
-
           const rows = csv.split("\n").slice(1).filter(Boolean);
-          const data = rows.map(row => {
+          allData = rows.map(row => {
             const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, ''));
             return {
               aws_service_name: cols[0],
@@ -74,52 +74,62 @@
               note_1: cols[4]
             };
           });
-
-          resultsData = mode === 'keyword'
-            ? data.filter(d => d.key_word.toLowerCase().includes(query))
-            : data.filter(d =>
-                Object.values(d).some(value =>
-                  value.toLowerCase().includes(query)
-                )
-              );
-
-          currentPage = 1;
-          renderPage();
         });
+    }
+
+    function handleSearchSubmit() {
+      searchQuery = document.getElementById("searchInput").value.trim().toLowerCase();
+      searchMode = document.querySelector('input[name="searchMode"]:checked').value;
+      if (searchQuery === "") return false;
+
+      document.getElementById("searchSummary").innerText = `Searching for "${searchQuery}" in ${searchMode === "keyword" ? "keywords" : "all fields"}...`;
+      filterResults();
+      return false;
+    }
+
+    function filterResults() {
+      resultsData = searchMode === 'keyword'
+        ? allData.filter(d => d.key_word.toLowerCase().includes(searchQuery))
+        : allData.filter(d =>
+            Object.values(d).some(value =>
+              value.toLowerCase().includes(searchQuery)
+            )
+          );
+      currentPage = 1;
+      renderPage();
+      document.getElementById("downloadBtn").style.display = resultsData.length > 0 ? "inline-block" : "none";
     }
 
     function renderPage() {
       const container = document.getElementById('results');
       container.innerHTML = '';
 
+      if (resultsData.length === 0) {
+        container.innerHTML = '<p>No matches found.</p>';
+        document.getElementById('pagination').style.display = 'none';
+        return;
+      }
+
       const start = (currentPage - 1) * itemsPerPage;
       const end = start + itemsPerPage;
       const pageData = resultsData.slice(start, end);
-
-      if (resultsData.length > itemsPerPage) {
-        document.getElementById('pagination').style.display = 'block';
-        document.getElementById('pageInfo').innerText = `Page ${currentPage} of ${Math.ceil(resultsData.length / itemsPerPage)}`;
-      } else {
-        document.getElementById('pagination').style.display = 'none';
-      }
-
-      if (pageData.length === 0) {
-        container.innerHTML = '<p>No matches found.</p>';
-        return;
-      }
 
       pageData.forEach(item => {
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-          <strong>Service:</strong> ${highlightMatch(item.aws_service_name, query)}<br>
-          <strong>Keyword:</strong> ${highlightMatch(item.key_word, query)}<br>
-          <strong>What it is:</strong> ${highlightMatch(item.what_it_is, query)}<br>
-          <strong>Note:</strong> ${highlightMatch(item.note_1, query)}<br>
-          <strong>Use Case:</strong> ${highlightMatch(item.use_case, query)}
+          <strong>Service:</strong> ${highlightMatch(item.aws_service_name, searchQuery)}<br>
+          <strong>Keyword:</strong> ${highlightMatch(item.key_word, searchQuery)}<br>
+          <strong>What it is:</strong> ${highlightMatch(item.what_it_is, searchQuery)}<br>
+          <strong>Note:</strong> ${highlightMatch(item.note_1, searchQuery)}<br>
+          <strong>Use Case:</strong> ${highlightMatch(item.use_case, searchQuery)}
         `;
         container.appendChild(card);
       });
+
+      const totalPages = Math.ceil(resultsData.length / itemsPerPage);
+      document.getElementById("pagination").style.display = totalPages > 1 ? "block" : "none";
+      document.getElementById("pageInfo").innerText = `Page ${currentPage} of ${totalPages}`;
     }
 
     function prevPage() {
@@ -130,7 +140,8 @@
     }
 
     function nextPage() {
-      if (currentPage < Math.ceil(resultsData.length / itemsPerPage)) {
+      const totalPages = Math.ceil(resultsData.length / itemsPerPage);
+      if (currentPage < totalPages) {
         currentPage++;
         renderPage();
       }
@@ -161,7 +172,7 @@
       doc.save("search_results.pdf");
     }
 
-    loadCSVAndSearch();
+    loadCSV();
   </script>
 </body>
 </html>

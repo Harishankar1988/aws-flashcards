@@ -39,3 +39,23 @@ button {
   cursor: pointer;
   text-align: left;
 }
+
+/* Mobile-friendly dropdown styling */
+select#serviceFilter {
+  font-size: 1rem;
+  padding: 10px;
+  width: 100%;
+  max-width: 300px;
+  margin: 10px auto;
+  display: block;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+/* Optional: Enhance even further on smaller screens */
+@media (max-width: 600px) {
+  select#serviceFilter {
+    font-size: 1.1rem;
+    padding: 12px;
+  }
+}

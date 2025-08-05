@@ -8,11 +8,12 @@ body {
 .container {
   max-width: 900px;
   margin: auto;
+  padding: 10px;
   text-align: center;
 }
 
 .mode-buttons {
-  margin: 10px;
+  margin: 15px 0;
 }
 
 button {
@@ -22,7 +23,12 @@ button {
   color: white;
   border: none;
   border-radius: 5px;
+  font-size: 1rem;
   cursor: pointer;
+}
+
+button:hover {
+  background-color: #1d4ed8;
 }
 
 #app {
@@ -36,11 +42,9 @@ button {
   padding: 20px;
   margin: 10px auto;
   max-width: 500px;
-  cursor: pointer;
   text-align: left;
 }
 
-/* Mobile-friendly dropdown styling */
 select#serviceFilter {
   font-size: 1rem;
   padding: 10px;
@@ -52,10 +56,44 @@ select#serviceFilter {
   border: 1px solid #ccc;
 }
 
-/* Optional: Enhance even further on smaller screens */
+.search-controls {
+  margin: 15px auto;
+  text-align: center;
+}
+
+.search-controls input[type="text"] {
+  padding: 10px;
+  font-size: 1rem;
+  width: 60%;
+  max-width: 300px;
+  margin: 5px;
+}
+
+.search-controls label {
+  margin: 0 10px;
+  font-size: 0.95rem;
+}
+
 @media (max-width: 600px) {
+  .search-controls input[type="text"] {
+    width: 90%;
+    font-size: 1.1rem;
+  }
+
   select#serviceFilter {
     font-size: 1.1rem;
     padding: 12px;
   }
+
+  .container {
+    padding: 5px;
+  }
+
+  button {
+    font-size: 1.1rem;
+  }
+}
+
+mark {
+  background-color: yellow;
 }
