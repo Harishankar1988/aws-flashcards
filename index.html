@@ -4,14 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AWS Flashcard & Cheatsheet App</title>
-  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
   <div class="container">
     <h1>AWS Flashcards & Cheatsheet</h1>
 
     <div class="mode-buttons">
-      <a href="search.html"><button>Search</button></a>
       <button onclick="setMode('flashcard')">Flashcard Mode</button>
       <button onclick="setMode('cheatsheet')">Cheatsheet Mode</button>
       <button onclick="downloadPDF()">Download PDF</button>
@@ -24,9 +23,14 @@
       <button onclick="prevCard()">Previous</button>
       <button onclick="nextCard()">Next</button>
     </div>
+
+    <!-- Moved Search button to bottom of the page -->
+    <div class="mode-buttons" style="margin-top: 40px;">
+      <a href="search.html"><button>Search</button></a>
+    </div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
