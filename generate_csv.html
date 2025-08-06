@@ -94,7 +94,7 @@
     <h3>All CSV Rows:</h3>
     <textarea id="output" rows="10" readonly></textarea>
     <br>
-    <button onclick="downloadCSV()">⬇ Download CSV</button>
+    <button onclick="downloadCSV()">⬇ Download Text File</button>
   </div>
 
   <script>
@@ -110,16 +110,19 @@
       const csvRow = values.join(',');
       outputArea.value += csvRow + '\n';
 
-      // Clear input fields
       fields.forEach(id => document.getElementById(id).value = '');
     });
 
     function downloadCSV() {
-      const blob = new Blob([outputArea.value], { type: 'text/csv' });
+      const now = new Date();
+      const timestamp = now.toISOString().replace(/[:.]/g, '-');
+      const filename = `flashcards_${timestamp}.txt`;
+
+      const blob = new Blob([outputArea.value], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'flashcards.txt';
+      link.download = filename;
       link.click();
       URL.revokeObjectURL(url);
     }
