@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Generate Flashcard CSV</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      margin: 0;
+      background-color: #f9f9f9;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1em;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1em;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #1d4ed8;
+    }
+    .top-nav {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .top-nav a button {
+      background-color: #6b7280;
+    }
+    @media (max-width: 600px) {
+      body {
+        padding: 10px;
+      }
+      .container {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-nav">
+    <a href="index.html"><button>⬅ Back to Home</button></a>
+  </div>
+  <div class="container">
+    <h2>Generate Flashcard CSV Rows</h2>
+    <form id="csvForm">
+      <label for="aws_service_name">AWS Service Name</label>
+      <input type="text" id="aws_service_name" name="aws_service_name" required>
+
+      <label for="key_word">Key Word</label>
+      <input type="text" id="key_word" name="key_word" required>
+
+      <label for="what_it_is">What it is</label>
+      <textarea id="what_it_is" name="what_it_is" rows="2" required></textarea>
+
+      <label for="use_case">Use Case</label>
+      <textarea id="use_case" name="use_case" rows="2"></textarea>
+
+      <label for="note_1">Note</label>
+      <textarea id="note_1" name="note_1" rows="2"></textarea>
+
+      <button type="submit">➕ Add Row</button>
+    </form>
+
+    <h3>All CSV Rows:</h3>
+    <textarea id="output" rows="10" readonly></textarea>
+    <br>
+    <button onclick="downloadCSV()">⬇ Download CSV</button>
+  </div>
+
+  <script>
+    const outputArea = document.getElementById('output');
+
+    document.getElementById('csvForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const fields = ['aws_service_name', 'key_word', 'what_it_is', 'use_case', 'note_1'];
+      const values = fields.map(id => {
+        const value = document.getElementById(id).value.trim();
+        return '"' + value.replace(/"/g, '""') + '"';
+      });
+      const csvRow = values.join(',');
+      outputArea.value += csvRow + '\n';
+
+      // Clear input fields
+      fields.forEach(id => document.getElementById(id).value = '');
+    });
+
+    function downloadCSV() {
+      const blob = new Blob([outputArea.value], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'flashcards.txt';
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
