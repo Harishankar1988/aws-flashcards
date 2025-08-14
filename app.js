@@ -12,20 +12,16 @@ function setMode(m) {
 function loadCSV() {
   fetch("data.csv")
     .then(res => res.text())
-    .then(text => {
-      const rows = text.split("\n").slice(1).filter(Boolean);
-      data = rows.map(row => {
-        const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(c => c.replace(/^"|"$/g, ''));
-        return {
-          aws_service_name: cols[0],
-          key_word: cols[1],
-          what_it_is: cols[2],
-          use_case: cols[3],
-          note_1: cols[4]
-        };
+    .then(csvText => {
+      Papa.parse(csvText, {
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          data = results.data;
+          populateDropdown();
+          render();
+        }
       });
-      populateDropdown();
-      render();
     });
 }
 
